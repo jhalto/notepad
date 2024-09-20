@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notepad/add_note.dart';
 import 'package:notepad/db_helper.dart';
 import 'package:notepad/edit_note.dart';
+import 'package:notepad/view_notes.dart';
 
 import 'note.dart';
 
@@ -40,33 +41,44 @@ class _HomeState extends State<Home> {
             return snapshot.data!.isEmpty ? Center(child: Text("Data Nai")):
                 GridView(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-                  children: snapshot.data!.map((e) => Card(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Title: ${ e.title}"),
-                        Text("Note: ${e.note}"),
-                        Row(
-                          children: [
-                            IconButton(onPressed: ()async{
-                            final result= await Navigator.push(context, MaterialPageRoute(builder: (context) => EditNote(note: e,),));
-                            if(result==true){
-                              setState(() {
+                  children: snapshot.data!.map((e) => GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ViewNotes(note: e),));
+                    },
+                    child: Card(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Title: ${ e.title}"),
+                          SizedBox(height: 10,),
 
-                              });
-                            }
-                            }, icon: Icon(Icons.edit)),
-                            IconButton(onPressed: ()async{
-                              await DbHelper().deleteNote(e.id!);
-                              setState(() {
+                          Text("Note: ",style: TextStyle(fontWeight: FontWeight.bold),),
+                          Text(e.note
+                          ,maxLines: 4,),
+                          Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(onPressed: ()async{
+                              final result= await Navigator.push(context, MaterialPageRoute(builder: (context) => EditNote(note: e,),));
+                              if(result==true){
+                                setState(() {
 
-                              });
-                            }, icon: Icon(Icons.delete)),
-                          ],
-                        )
-                      ],
-                    )
+                                });
+                              }
+                              }, icon: Icon(Icons.edit)),
+                              IconButton(onPressed: ()async{
+                                await DbHelper().deleteNote(e.id!);
+                                setState(() {
 
+                                });
+                              }, icon: Icon(Icons.delete)),
+                            ],
+                          )
+                        ],
+                      )
+
+                    ),
                   ),).toList(),
                 );
           }),
