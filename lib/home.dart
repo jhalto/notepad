@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notepad/add_note.dart';
 import 'package:notepad/db_helper.dart';
 import 'package:notepad/edit_note.dart';
+import 'package:notepad/gemini.dart';
 import 'package:notepad/view_notes.dart';
 
 import 'note.dart';
@@ -20,6 +21,17 @@ class _HomeState extends State<Home> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          actions: [
+            TextButton(onPressed: ()async{
+             final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => GeminiAi(),));
+             if(result == true){
+               setState(() {
+
+               });
+             }
+
+            }, child: Text("Gemini"))
+          ],
           backgroundColor: Colors.black,
           title: Text("Notes",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
           centerTitle: true,
@@ -54,7 +66,7 @@ class _HomeState extends State<Home> {
 
                           Text("Note: ",style: TextStyle(fontWeight: FontWeight.bold),),
                           Text(e.note
-                          ,maxLines: 4,),
+                          ,maxLines: 3,),
                           Spacer(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

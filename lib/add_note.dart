@@ -16,6 +16,7 @@ class _AddNoteState extends State<AddNote> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text("Add Notes"),
           centerTitle: true,
@@ -38,20 +39,23 @@ class _AddNoteState extends State<AddNote> {
               Text("Notes"),
               SizedBox(height: 20),
               SingleChildScrollView(
+                scrollDirection: Axis.vertical,
                 child: Container(
                   child: TextField(
                     controller: noteController,
-                    maxLines: null,
+                    maxLines: 5,
                   ),
                 ),
               ),
               SizedBox(height: 50,),
               MaterialButton(onPressed: ()async{
-               await DbHelper().createNote(Note(note: noteController.text,title: titleController.text));
+                await DbHelper().createNote(Note(note: noteController.text,title: titleController.text));
                 Navigator.pop(context,true);
               },
-              child: Center(child: Text("Save"),),color: Colors.black12,
-              )
+                child: Center(child: Text("Save"),),color: Colors.black12,
+
+              ),
+
             ],
           ),
         ),

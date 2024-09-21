@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:notepad/apl_key.dart';
 import 'package:notepad/home.dart';
 
 void main() {
+  Gemini.init(
+    apiKey: Gemini_Api
+  );
   runApp(const MyApp());
 }
 

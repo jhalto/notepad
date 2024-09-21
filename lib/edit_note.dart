@@ -26,6 +26,7 @@ class _EditNoteState extends State<EditNote> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +47,7 @@ class _EditNoteState extends State<EditNote> {
                 child: Container(
                   child: TextField(
                     controller: editNote,
-                    maxLines: null,
+                    maxLines: 15,
                   ),
                 ),
               ),
