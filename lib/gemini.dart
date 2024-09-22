@@ -20,6 +20,9 @@ class _GeminiAiState extends State<GeminiAi> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
+  // Limiting chat history to last 10 messages
+  final int _historyLimit = 5;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,9 +30,9 @@ class _GeminiAiState extends State<GeminiAi> {
         title: Text("Gemini Chat"),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: ()async{
-           final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => AddNote(),));
-           Navigator.pop(context,result);
+          IconButton(onPressed: () async {
+            final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => AddNote(),));
+            Navigator.pop(context, result);
           }, icon: Icon(Icons.add))
         ],
       ),
@@ -81,7 +84,7 @@ class _GeminiAiState extends State<GeminiAi> {
               children: [
                 IconButton(
                   icon: Icon(Icons.image),
-                  onPressed: _sendMediaMessage,
+                  onPressed: _showImageSourceOptions,
                 ),
                 Expanded(
                   child: TextField(
@@ -107,8 +110,41 @@ class _GeminiAiState extends State<GeminiAi> {
     );
   }
 
+  // Function to display options for selecting image source
+  void _showImageSourceOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.camera),
+                title: Text('Camera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _sendMediaMessage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Gallery'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _sendMediaMessage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Function to send message, including image if present
   void _sendMessage(String text, Uint8List? imageBytes) {
     if (text.isNotEmpty || imageBytes != null) {
+      // Create a user message
       final userMessage = ChatMessage(
         text: text,
         isUser: true,
@@ -120,12 +156,25 @@ class _GeminiAiState extends State<GeminiAi> {
       _textController.clear();
       _scrollToBottom();
 
+      // If image is attached, include it
       List<Uint8List>? images;
       if (imageBytes != null) {
         images = [imageBytes];
       }
 
-      gemini.streamGenerateContent(text, images: images).listen(
+      // Limit chat history to last 10 messages and chunk long ones
+      String chatHistory = '';
+      for (var msg in messages.take(_historyLimit).toList().reversed) {
+        String messageText = _chunkMessage(msg.text, 500); // Chunk size set to 500 characters
+        if (msg.isUser) {
+          chatHistory += 'User: ${messageText.isNotEmpty ? messageText : "[Image]"}\n';
+        } else {
+          chatHistory += 'AI: ${messageText.isNotEmpty ? messageText : "[Image]"}\n';
+        }
+      }
+
+      // Send chat history along with the current message to Gemini AI
+      gemini.streamGenerateContent(chatHistory, images: images).listen(
             (event) {
           ChatMessage botMessage;
           if (messages.isNotEmpty && !messages.first.isUser) {
@@ -155,8 +204,9 @@ class _GeminiAiState extends State<GeminiAi> {
     }
   }
 
-  void _sendMediaMessage() async {
-    XFile? file = await _picker.pickImage(source: ImageSource.gallery);
+  // Function to pick image and send media message
+  void _sendMediaMessage(ImageSource source) async {
+    XFile? file = await _picker.pickImage(source: source);
     if (file != null) {
       Uint8List bytes;
       if (kIsWeb) {
@@ -164,10 +214,20 @@ class _GeminiAiState extends State<GeminiAi> {
       } else {
         bytes = await File(file.path).readAsBytes();
       }
-      _sendMessage("Extract the text", bytes);
+      _sendMessage("Extract text from this image", bytes);
     }
   }
 
+  // Function to split long messages into smaller chunks
+  String _chunkMessage(String message, int chunkSize) {
+    final List<String> chunks = [];
+    for (int i = 0; i < message.length; i += chunkSize) {
+      chunks.add(message.substring(i, i + chunkSize > message.length ? message.length : i + chunkSize));
+    }
+    return chunks.join("\n");
+  }
+
+  // Function to scroll the chat to the bottom
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.animateTo(
@@ -179,6 +239,7 @@ class _GeminiAiState extends State<GeminiAi> {
   }
 }
 
+// ChatMessage class to represent each message (with optional image)
 class ChatMessage {
   String text;
   final bool isUser;

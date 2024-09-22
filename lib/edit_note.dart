@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:notepad/db_helper.dart';
 import 'package:notepad/note.dart';
 
-import 'home.dart';
 
 class EditNote extends StatefulWidget {
   Note? note;
@@ -47,7 +46,7 @@ class _EditNoteState extends State<EditNote> {
                 child: Container(
                   child: TextField(
                     controller: editNote,
-                    maxLines: 15,
+                    maxLines: 5,
                   ),
                 ),
               ),

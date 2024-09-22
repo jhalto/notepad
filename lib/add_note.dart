@@ -47,7 +47,7 @@ class _AddNoteState extends State<AddNote> {
                   ),
                 ),
               ),
-              SizedBox(height: 50,),
+              SizedBox(height: 20,),
               MaterialButton(onPressed: ()async{
                 await DbHelper().createNote(Note(note: noteController.text,title: titleController.text));
                 Navigator.pop(context,true);
